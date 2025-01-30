@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dnevnik putovanja</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <header>
+    <h1>Dnevnik putovanja</h1>
+    <button id="install-button" style="display: none;">Instaliraj aplikaciju</button>
+  </header>
+
+  <main>
+    <section id="camera-section">
+      <h2>Dodaj fotografiju</h2>
+      <button id="camera-button">Otvori kameru</button>
+      <video id="camera-preview" autoplay style="display: none;"></video>
+      <canvas id="canvas" style="display: none;"></canvas>
+      <img id="photo-preview" alt="Snimljena fotografija" style="display: none;">
+    </section>
+
+    <section id="notes-section">
+      <h2>Dodaj bilješku</h2>
+      <textarea id="note-input" placeholder="Napiši bilješku..."></textarea>
+      <button id="save-note-button">Spremi bilješku</button>
+    </section>
+
+    <section id="saved-photos-section">
+      <h2>Spremljene fotografije</h2>
+      <div id="saved-photos"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
