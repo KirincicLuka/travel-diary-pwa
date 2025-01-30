@@ -1,5 +1,4 @@
 let cameraStream;
-
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (event) => {
@@ -38,6 +37,7 @@ document.getElementById('save-note-button').addEventListener('click', () => {
     localStorage.setItem('pendingNotes', JSON.stringify(pendingNotes));
     noteInput.value = '';
     console.log('Spremljena bilješka:', noteText);
+    displaySavedNotes();
   } else {
     alert('Unesite bilješku prije spremanja!');
   }
@@ -55,16 +55,14 @@ if ('serviceWorker' in navigator) {
 
 document.getElementById('camera-button').addEventListener('click', async () => {
   try {
-    // Otvori kameru
     cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
     const cameraPreview = document.getElementById('camera-preview');
     cameraPreview.srcObject = cameraStream;
     cameraPreview.style.display = 'block';
 
-    // Snimi fotografiju nakon 1 sekunde (možete promijeniti u klik na drugi gumb)
     setTimeout(() => {
       takePhoto();
-    }, 1000); // Snimi fotografiju nakon 1 sekunde
+    }, 1000); 
   } catch (error) {
     console.error('Greška prilikom pristupa kameri:', error);
     alert('Nije moguće pristupiti kameri. Provjerite dozvole i hardver.');
@@ -76,25 +74,19 @@ function takePhoto() {
   const canvas = document.getElementById('canvas');
   const photoPreview = document.getElementById('photo-preview');
 
-  // Postavi dimenzije canvasa na dimenzije video streama
   canvas.width = cameraPreview.videoWidth;
   canvas.height = cameraPreview.videoHeight;
 
-  // Snimi trenutni okvir iz video streama na canvas
   const context = canvas.getContext('2d');
   context.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
 
-  // Pretvori canvas u sliku (base64 format)
   const photoData = canvas.toDataURL('image/png');
 
-  // Prikaži fotografiju
   photoPreview.src = photoData;
   photoPreview.style.display = 'block';
 
-  // Spremi fotografiju u lokalnu pohranu (ili bazu)
   savePhoto(photoData);
 
-  // Zatvori kameru
   if (cameraStream) {
     cameraStream.getTracks().forEach(track => track.stop());
     cameraPreview.srcObject = null;
@@ -103,7 +95,6 @@ function takePhoto() {
 }
 
 function savePhoto(photoData) {
-  // Spremi fotografiju u localStorage (možete zamijeniti s API pozivom za spremanje u bazu)
   const savedPhotos = JSON.parse(localStorage.getItem('savedPhotos')) || [];
   savedPhotos.push(photoData);
   localStorage.setItem('savedPhotos', JSON.stringify(savedPhotos));
@@ -115,21 +106,18 @@ function savePhoto(photoData) {
 function deletePhoto(index) {
   let savedPhotos = JSON.parse(localStorage.getItem('savedPhotos')) || [];
   
-  savedPhotos.splice(index, 1); // Ukloni sliku s danog indeksa
-  localStorage.setItem('savedPhotos', JSON.stringify(savedPhotos)); // Ažuriraj storage
+  savedPhotos.splice(index, 1); 
+  localStorage.setItem('savedPhotos', JSON.stringify(savedPhotos));
 
-  displaySavedPhotos(); // Ponovno prikaži ažurirani popis slika
+  displaySavedPhotos(); 
 }
-
 
 function displaySavedPhotos() {
   const savedPhotosContainer = document.getElementById('saved-photos');
-  savedPhotosContainer.innerHTML = ''; // Očisti postojeći sadržaj
+  savedPhotosContainer.innerHTML = ''; 
 
-  // Dohvati spremljene fotografije iz localStorage
   const savedPhotos = JSON.parse(localStorage.getItem('savedPhotos')) || [];
 
-  // Prikaži svaku spremljenu fotografiju
   savedPhotos.forEach((photoData, index) => {
     const imgContainer = document.createElement('div');
     imgContainer.style.display = 'inline-block';
@@ -152,7 +140,43 @@ function displaySavedPhotos() {
   });
 }
 
-// Prikaži spremljene fotografije prilikom učitavanja stranice
+function displaySavedNotes() {
+  const savedNotesContainer = document.getElementById('saved-notes');
+  savedNotesContainer.innerHTML = ''; 
+
+  const savedNotes = JSON.parse(localStorage.getItem('pendingNotes')) || [];
+
+  savedNotes.forEach((note, index) => {
+    const noteElement = document.createElement('div');
+    noteElement.classList.add('note-item');
+    noteElement.textContent = note;
+
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Obriši';
+    deleteButton.classList.add('delete-note-button');
+    deleteButton.addEventListener('click', () => {
+      savedNotes.splice(index, 1);
+      localStorage.setItem('pendingNotes', JSON.stringify(savedNotes));
+      displaySavedNotes(); 
+    })
+
+    noteElement.appendChild(deleteButton);
+    savedNotesContainer.appendChild(noteElement);
+  });
+}
+
+if ('Notification' in window && 'serviceWorker' in navigator) {
+  Notification.requestPermission().then((permission) => {
+    if (permission === 'granted') {
+      console.log('Korisnik je dopustio push notifikacije.');
+    } else {
+      console.log('Korisnik je odbio notifikacije.');
+    }
+  });
+}
+
 window.addEventListener('load', () => {
   displaySavedPhotos();
+  displaySavedNotes();
+
 });

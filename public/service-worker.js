@@ -1,11 +1,11 @@
-const CACHE_NAME = 'travel-diary-v1';
+const CACHE_NAME = 'travel-diary-v2';
 const ASSETS = [
   '/',
   '/index.html',
   '/styles.css',
   '/app.js',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  '/icons/icon-192.png',
+  '/icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -38,35 +38,47 @@ self.addEventListener('push', (event) => {
   );
 });
 
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
+          }
+        })
+      );
+    })
+  );
+});
+
 function getPendingNotes() {
-    // Ovdje dohvatite bilješke iz lokalne pohrane (npr. IndexedDB ili localStorage)
-    return JSON.parse(localStorage.getItem('pendingNotes')) || [];
-  }
+  return JSON.parse(localStorage.getItem('pendingNotes')) || [];
+}
   
-  function syncNotes() {
-    const pendingNotes = getPendingNotes();
-    return fetch('/api/sync', {
+async function syncNotes() {
+  const pendingNotes = getPendingNotes();
+  try {
+    const response = await fetch('/api/sync', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(pendingNotes),
-    })
-      .then((response) => {
-        if (response.ok) {
-          localStorage.removeItem('pendingNotes'); // Očisti lokalnu pohranu nakon sinkronizacije
-          showNotification('Bilješke su sinkronizirane!');
-        } else {
-          throw new Error('Greška prilikom sinkronizacije');
-        }
-      })
-      .catch((error) => {
-        console.error('Greška:', error);
-      });
-  }
-
-  function showNotification(message) {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('Dnevnik putovanja', { body: message });
+    });
+    if (response.ok) {
+      localStorage.removeItem('pendingNotes');
+      showNotification('Bilješke su sinkronizirane!');
+    } else {
+      throw new Error('Greška prilikom sinkronizacije');
     }
+  } catch (error) {
+    console.error('Greška:', error);
   }
+}
+
+function showNotification(message) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('Dnevnik putovanja', { body: message });
+  }
+}

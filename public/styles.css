@@ -83,10 +83,16 @@ body {
     height: auto;
     border-radius: 8px;
     margin-top: 1rem;
-    display: none; /* Skriveno dok se ne aktivira kamera */
+    display: none;
   }
-  
-  /* Responsive dizajn */
+
+  #saved-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; 
+    margin-top: 10px;
+  }
+    
   @media (max-width: 600px) {
     header h1 {
       font-size: 1.25rem;
